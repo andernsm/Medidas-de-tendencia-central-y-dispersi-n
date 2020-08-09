@@ -1,0 +1,198 @@
+---
+title: "Tablas y gráficos en RStudio"
+author: "Anderson N. Soriano-Moreno"
+date: "2020/08/09"
+output: 
+  html_document:
+    toc: TRUE
+    number_sections: TRUE
+    toc_float: TRUE
+    code_folding:
+    df_print: 
+    highlight: tango
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=FALSE,
+                      message = FALSE,
+                      fig.align = "center")
+library(tableone)
+library(psych)
+library(sjPlot)
+```
+
+# Importando base de datos  
+
+## En CSV
+
+1. Utilizamos el comando **"read.csv()**" 
+2. Entre dos paréntesis y dos comillas ponemos la dirección de base de datos en formato *csv*.
+3. Cargamos la base de datos con el nombres "datos" que lo ponemos a la izquierda después de una flecha **"<-"**. 
+
+Mira el ejemplo.
+
+```{r, echo=F}
+datos <- read.csv("~/R/Projects/LeaRning/Normalidad/data/base_datos.csv")
+```
+
+```{r, eval=F}
+datos <- read.csv("~Documentos/Proyecto/base_datos.csv")
+```
+
+## En Excel
+
+1. Instalamos el paquete **"readxl"** con el comando **install.packages("readxl")**
+2. Cargamos el paquetes **"readxl"** con el comando **library(readxl)**
+3. Utilizamos el comando **"read_xlsx()"**. Entre dos paréntesis y dos comillas ponemos la dirección de base de datos en formato *xlsx*.
+5. Cargamos la base de datos con el nombres "datos" que lo ponemos a la izquierda después de una flecha **"<-"**. 
+
+Mira el ejemplo.
+
+```{r echo=TRUE, eval=F}
+install.packages("readxl")
+library(readxl)
+datos <- read_xlsx("~Documentos/Proyecto/base_datos.xlsx")
+```
+
+# Explorando base
+
+## Visualizandola
+
+Usamos el comando **head()**
+
+```{r}
+head(datos)
+```
+
+## Viendo clases de variables
+
+Usamos el comando **str()**
+
+```{r}
+str(datos)
+```
+
+## Explorando variable
+
+1. Para seleccionar una variable en R primero escribimos el nombre de la base de datos, en este caso *"datos"*. A continuación escribimos el símbolo **"$"**. 
+2. Si en este punto hacemos click en la tacla **Tab** en el taclado, aparecera un menu desplegable con el nombre de las variables que hay dentro de esa base de datos. Podemos seleccionar la variable que deseamos en ese menú, o también escribirla.
+
+### Categóricas
+
+Como mencionamos en clase, las variables categóricas se describen usualmente con frecuencias. Para hacer esto utilizaremos el comando **"table()"** que tabula las frecuencias absolutas de la variable.
+
+```{r}
+table(datos$genero)
+```
+También podemos utilizar adicionalmente el comando **prop.table()** sobre ele anterior para calcular las frecuencias relativas.
+
+```{r}
+prop.table(table(datos$genero))
+```
+
+### Numéricas
+
+Para explorar la variable de forma general podemos utilizar el comando **"summary()"** que nos brindará varios parámetros descriptivos.
+
+```{r}
+summary(datos$edad)
+```
+
+De la misma forma, se puede calcular la **media, mediana, desviacion estandar y rangos intercuartílico**.
+
+#### Media
+```{r}
+mean(datos$edad)
+```
+#### Mediana
+```{r}
+median(datos$edad)
+```
+#### Desviación standar
+```{r}
+sd(datos$edad)
+```
+#### Rangos intercuartílicos
+```{r}
+quantile(datos$edad)
+```
+
+Ahora si queremos calcular además la kurtosis y la skewness utilizaremos el comando "describe()" de la librería **"psych"**. Para esto,  instalamos el paquete y seguido lo abrimos. Finalmente dentro del comando **"describe()"** ponemos la variable que deseemos evaluar.
+
+```{r, eval=F}
+install.packages("psych")
+library(psych)
+```
+
+Mira el ejemplo
+
+```{r}
+describe(datos$edad)
+describe(datos$pab)
+describe(datos$pct_grasa)
+describe(datos$imc)
+```
+
+# Creando tablas
+
+Utilizaremos el comando **CreateTableOne()** del paquete **tableone**
+
+```{r, eval=F}
+install.packages("tableone")
+library(tableone)
+```
+
+## Tabla 1
+```{r}
+tab1 <- CreateTableOne(data = datos)
+```
+```{r}
+tab1 <- print(tab1)
+```
+```{r, eval=F}
+write.csv(tab1, "tablas/tabla1.csv")
+```
+
+## Tabla 2
+```{r}
+tab2 <- CreateTableOne(data = datos, strata = "genero")
+```
+```{r}
+tab2 <- print(tab2)
+```
+```{r, eval=F}
+write.csv(tab2, "tablas/tabla2.csv")
+```
+
+## Tabla 3
+
+Utilizaremos el comando **tab_model()** del paquete **sjplot()**
+
+Instalamos
+```{r, eval=F}
+install.packages("tableone")
+library(tableone)
+```
+
+Creamos la tabla
+
+```{r}
+modelo <- lm(data = datos, formula = pct_grasa ~ pab)
+```
+```{r}
+tab_model(modelo)
+```
+```{r, eval=F}
+tab_model(modelo, file="tablas/tabla3.xlsx")
+```
+
+```{r}
+modelo <- lm(data = datos, formula = pct_grasa ~ pab + genero)
+```
+```{r}
+tab_model(modelo)
+```
+
